@@ -1,70 +1,81 @@
 (ns letterdepress.core
+  (:gen-class)
   (:use [clojure.core.reducers :only (cat)])
-  (:use [clojure.java.io])
-  (:gen-class))
+  (:use [clojure.java.io]))
 
-(defn- compare-freqs
-  [word-freq board-freq]
+(defn- availability
+  [word board]
   (into {}
-    (for [c (keys word-freq)]
-      [c (- (board-freq c 0) (word-freq c))])))
+    (for [c (keys word)]
+      [c (- (board c 0) (word c))])))
 
-(defn freqs-pos?
+(defn- available?
   [freqs]
-  (reduce (fn [pos [ch freq]] (and pos (>= freq 0))) true freqs))
+  (reduce
+    (fn [ok [_ avail]]
+      (and ok (>= avail 0)))
+    true
+    freqs))
+
+(defn- update-score
+  [letter
+   {won       :won,
+    lost      :lost,
+    in-play   :in-play,
+    un-played :un-played,
+    nullified :nullified,
+    :as state
+    :or {won 0 lost 0}}]
+  (let [i (in-play   letter 0)
+        u (un-played letter 0)
+        n (nullified letter 0)]
+    (into state (cond
+      (> i 0) {:in-play   (assoc in-play letter (dec i))
+               :lost      (inc lost)
+               :won       (inc won)}
+      (> u 0) {:un-played (assoc un-played letter (dec u))
+               :won       (inc won)}
+      (> n 0) {:nullified (assoc nullified letter (dec n))}
+      :else   {:valid     false}))))
 
 (defn score
-  [word two-pointers one-pointers]
-  (reduce
-    (fn [state c]
-      (let [won-points  (state :won-points  0)
-            lost-points (state :lost-points 0)
-            tps (state :two-pointers {})
-            ops (state :one-pointers {})
-            tp  (tps c 0)
-            op  (ops c 0)]
-        (cond
-          (> tp 0) (assoc state
-            :two-pointers (assoc tps c (- tp 1))
-            :won-points   (inc won-points)
-            :lost-points  (inc lost-points))
-          (> op 0) (assoc state
-            :one-pointers (assoc ops c (- op 1))
-            :won-points   (inc won-points))
-          :else state)))
-    (assoc {}
-      :word         word
-      :two-pointers two-pointers
-      :one-pointers one-pointers)
-    word))
+  [word in-play un-played nullified]
+  (loop [current-score {:in-play   in-play
+                        :un-played un-played
+                        :nullified nullified
+                        :valid     true}
+         letters word]
+    (if (and (not-empty letters) (current-score :valid))
+      (recur (update-score (first letters) current-score) (rest letters))
+      current-score)))
 
-(defn- getenv
-  ([k]
-    (getenv k nil))
-  ([k fallback]
-    (let [found (System/getenv k)]
-      (if (nil? found) fallback found))))
+(defn print-score
+  [word
+   {won   :won,
+    lost  :lost,
+    valid :valid,
+    :or {won 0 lost 0 valid false}}]
+  (if valid
+    (println (format "+%d -%d %s" won lost word))))
+
+(def env ^{:private true}
+  (into {} (System/getenv)))
+
+(def dict-path
+  (env "DICT" "/usr/share/dict/words"))
 
 (defn -main
-  "I don't do a whole lot ... yet."
-  ([in-play]
-    (-main in-play ""))
-  ([in-play un-played]
-    (-main in-play un-played ""))
-  ([in-play un-played reserved]
-    (let [in-play        (.toLowerCase in-play)
-          un-played      (.toLowerCase un-played)
-          reserved       (.toLowerCase reserved)
-          dict-path      (getenv "DICT" "/usr/share/dict/words")
-          board-freq     (frequencies (cat in-play (cat un-played reserved)))
-          availability   (fn [word] (compare-freqs (frequencies word) board-freq))
-          on-board       (fn [word] (freqs-pos? (availability word)))
-          un-played-freq (frequencies un-played)
-          in-play-freq   (frequencies in-play)
-          score          (fn [word] (score word in-play-freq un-played-freq))
-          print-score    (fn [s] (println (format "+%d -%d %s"
-                            (s :won-points 0) (s :lost-points 0) (s :word))))]
-      (with-open [rdr (reader dict-path)]
-        (doseq [word (map #(.toLowerCase %) (line-seq rdr))
-               :when (on-board word)]
-          (print-score (score word)))))))
+  "Letterpress got you sad?  This will make you sadder.
+  "
+  ([un-played]
+    (-main un-played ""))
+  ([un-played in-play]
+    (-main un-played in-play ""))
+  ([un-played in-play nullified]
+    (let [un-played (frequencies (.toLowerCase un-played))
+          in-play   (frequencies (.toLowerCase in-play))
+          nullified (frequencies (.toLowerCase nullified))]
+      (with-open [dict (reader dict-path)]
+        (doseq [word (line-seq dict)]
+          (print-score word
+            (score (.toLowerCase word) in-play un-played nullified)))))))
