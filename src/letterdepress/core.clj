@@ -38,27 +38,33 @@
       :one-pointers one-pointers)
     word))
 
+(defn- getenv
+  ([k]
+    (getenv k nil))
+  ([k fallback]
+    (let [found (System/getenv k)]
+      (if (nil? found) fallback found))))
+
 (defn -main
   "I don't do a whole lot ... yet."
-  ([un-played]
-    (-main un-played ""))
-  ([un-played in-play]
-    (-main un-played in-play ""))
-  ([un-played in-play reserved]
-    (let [board          (cat in-play (cat un-played reserved))
-          board-freq     (frequencies board)
-          freqs (fn [word]
-            (compare-freqs (frequencies word) board-freq))
-          on-board (fn [word]
-            (freqs-pos? (freqs word)))
+  ([in-play]
+    (-main in-play ""))
+  ([in-play un-played]
+    (-main in-play un-played ""))
+  ([in-play un-played reserved]
+    (let [in-play        (.toLowerCase in-play)
+          un-played      (.toLowerCase un-played)
+          reserved       (.toLowerCase reserved)
+          dict-path      (getenv "DICT" "/usr/share/dict/words")
+          board-freq     (frequencies (cat in-play (cat un-played reserved)))
+          availability   (fn [word] (compare-freqs (frequencies word) board-freq))
+          on-board       (fn [word] (freqs-pos? (availability word)))
           un-played-freq (frequencies un-played)
           in-play-freq   (frequencies in-play)
-          score (fn [word]
-            (score word un-played-freq in-play-freq))
-          print-score (fn [score]
-            (println
-              (format "+%d -%d %s" (score :won-points 0) (score :lost-points 0) (score :word))))]
-      (with-open [rdr (reader "/usr/share/dict/words")]
+          score          (fn [word] (score word in-play-freq un-played-freq))
+          print-score    (fn [s] (println (format "+%d -%d %s"
+                            (s :won-points 0) (s :lost-points 0) (s :word))))]
+      (with-open [rdr (reader dict-path)]
         (doseq [word (map #(.toLowerCase %) (line-seq rdr))
                :when (on-board word)]
           (print-score (score word)))))))

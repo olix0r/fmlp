@@ -1,35 +1,41 @@
 # letterdepress
 
-FIXME: description
+A clojure app made to crack letterpress.  Because I'm terrible at life ;( 
 
 ## Installation
 
-Download from http://example.com/FIXME.
+    :; lein install
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar letterdepress-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
+	:; lein run <in-play> <unplayed> <reserved>
 
 ## Examples
 
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+     :; lein run "gdmkuerp" "xwuxvz" "nnbirvcbdmk" |sort -rn | head -n 20
+     +7 -6 unumpired
+     +7 -6 unpurged
+     +7 -6 unimpugned
+     +7 -6 underdrumming
+     +7 -6 undemurring
+     +6 -6 upridge
+     +6 -6 unprimmed
+     +6 -6 unprimed
+     +6 -6 unpricked
+     +6 -6 ungrimed
+     +6 -6 underpick
+     +6 -6 underking
+     +6 -6 perduring
+     +6 -6 murdering
+     +6 -6 impugner
+     +6 -6 dumper
+     +6 -6 demurring
+     +6 -5 unurged
+     +6 -5 unpucker
+     +6 -5 unpruned
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Oliver Gould
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the MIT license.
