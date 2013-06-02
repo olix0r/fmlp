@@ -58,11 +58,7 @@
   (if valid
     (println (format "+%d -%d %s" won lost word))))
 
-(def env ^{:private true}
-  (into {} (System/getenv)))
-
-(def dict-path
-  (env "DICT" "/usr/share/dict/words"))
+(def dict (resource "words"))
 
 (defn -main
   "Letterpress got you sad?  This will make you sadder.
@@ -75,7 +71,7 @@
     (let [un-played (frequencies (.toLowerCase un-played))
           in-play   (frequencies (.toLowerCase in-play))
           nullified (frequencies (.toLowerCase nullified))]
-      (with-open [dict (reader dict-path)]
+      (with-open [dict (reader dict)]
         (doseq [word (line-seq dict)]
           (print-score word
             (score (.toLowerCase word) in-play un-played nullified)))))))
