@@ -86,22 +86,22 @@
     (if-let [arg (first args)]
       (recur (rest args)
         (if (= (first arg) \-)
-          (reduce opt-parse config (rest arg))
+          (if (= (first (rest arg)) \-)
+            (opt-parse config arg)
+            (reduce opt-parse config (rest arg)))
           (assoc config :args (conj (config :args) arg))))
       config)))
 
 (defn- parse-config
-  ([args]
-    (parse-config args {}))
-
+  ([args] (parse-config args {}))
   ([args config]
-    (defn- parse-opts
+    (defn- opts
       [c flag]
       (case flag
         \H (assoc c :high-scores (inc (c :high-scores 0)))
         \h (assoc c :do-help? true)
-        (warn c "Unexpected flag: %s" flag)))
-    (let [config  (getopt args config parse-opts)]
+        (warn c (format "Unexpected flag: %s" flag))))
+    (let [config  (getopt args config opts)]
       (loop [args (config :args [])
              positions [:open :opponent :occupied]
              config config]
@@ -109,6 +109,8 @@
           config
           (recur (rest args) (rest positions) (assoc config
             (first positions) (frequencies (.toLowerCase (first args))))))))))
+
+(def board-capacity (* 5 5))
 
 (defn -main
 "Letterpress got you sad?  This will make you sadder.
@@ -128,9 +130,9 @@
               high-scores 0}}
                   (parse-config args {})
 
-        help      (:doc (meta (var -main)))
+        help-msg  (:doc (meta (var -main)))
 
-        is-empty? (empty? (flatten [open opponent occupied]))
+        board-sz  (reduce + 0 (flatten (map vals [open opponent occupied])))
 
         select-scores
                   (if (> high-scores 0)
@@ -138,16 +140,22 @@
                     identity)
 
         scores    (fn [words]
-                    (select-scores (filter-valid
-                      (map #(score (.toLowerCase %) config) words))))]
+                    (select-scores (filter-valid (map #(score (.toLowerCase %) config) words))))]
 
-    (doseq [warning warnings]
-      (.println *err* warning))
+    (doseq [w warnings]
+      (.println *err* w))
+
+    (if (> board-sz board-capacity)
+      (.println *err* (format "%d too many letters provided" (- board-sz board-capacity)))
+      (if (< board-sz board-capacity)
+        (.println *err* (format "%d too few letters provided" (- board-capacity board-sz)))))
 
     (cond
-      do-help?  (println help)
-      is-empty? (.println *err* help)
+      do-help?
+        (println help-msg)
+      (= board-sz 0)
+        (.println *err* help-msg)
       :else
         (with-open [dict (reader (resource "words"))]
-          (doseq [score (format-scores (scores (line-seq dict)))]
-            (println score))))))
+          (doseq [s (format-scores (scores (line-seq dict)))]
+            (println s))))))
