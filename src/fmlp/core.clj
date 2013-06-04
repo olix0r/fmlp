@@ -55,25 +55,29 @@
         (recur (rest letters) (update-score (first letters) score))
         score)))
 
-(defn select-high-scores
-  [n scores]
+(defn select-top
+  [n by col]
     (flatten (vals
       (reduce
-        (fn [high-scores
-             {points :points
-              taken  :taken
-              :as score :or {points 0 taken 0}}]
-          (let [delta (+ points taken)]
-            (if-let [s (high-scores delta)]
-              (assoc high-scores delta (conj s score))
-              (if (< (count high-scores) n)
-                (assoc high-scores delta [score])
-                (let [lowest (key (first high-scores))]
-                  (if (> delta lowest)
-                    (assoc (dissoc high-scores lowest) delta [score])
-                    high-scores))))))
-      (sorted-map)
-      scores))))
+        (fn [scoreboard t]
+          (if-let [v (by t)]
+            (if-let [s (scoreboard v)]
+              (assoc scoreboard v (conj s t))
+              (if (< (count scoreboard) n)
+                (assoc scoreboard v [t])
+                (let [lowest (key (first scoreboard))]
+                  (if (> v lowest)
+                    (assoc (dissoc scoreboard lowest) v [t])
+                    scoreboard))))
+            scoreboard))
+        (sorted-map)
+        col))))
+
+(defn select-high-scores
+  [n scores]
+    (select-top n
+      (fn [s] (+ (s :points 0) (s :taken 0)))
+      scores))
 
 (defn is-valid
   [score]
