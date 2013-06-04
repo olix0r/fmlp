@@ -1,4 +1,4 @@
-(ns letterdepress.core
+:13(ns fmlp.core
   (:gen-class)
   (:use [clojure.core.reducers :only (cat)])
   (:use [clojure.set])
@@ -51,7 +51,8 @@
   [n scores]
   (flatten (vals (reduce
     (fn [high-scores
-         {points :won :as score :or {won 0}}]
+         {points :won :as score
+          :or {points 0}}]
       (if-let [s (high-scores points)]
         (assoc high-scores points (conj s score))
         (if (< (count high-scores) n)
@@ -126,13 +127,14 @@
          :or {open     {}
               opponent {}
               occupied {}
+              warnings []
               do-help? false
               high-scores 0}}
                   (parse-config args {})
 
         help-msg  (:doc (meta (var -main)))
 
-        board-sz  (reduce + 0 (flatten (map vals [open opponent occupied])))
+        board-sz  (reduce + 0 (flatten (map vals (filter not-empty [open opponent occupied]))))
 
         select-scores
                   (if (> high-scores 0)
