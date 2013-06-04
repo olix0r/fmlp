@@ -57,17 +57,21 @@
 
 (defn select-high-scores
   [n scores]
-    (flatten (vals (reduce
-      (fn [high-scores
-           {points :points :as score :or {points 0}}]
-        (if-let [s (high-scores points)]
-          (assoc high-scores points (conj s score))
-          (if (< (count high-scores) n)
-            (assoc high-scores points [score])
-            (let [lowest (key (first high-scores))]
-              (if (> points lowest)
-                (assoc (dissoc high-scores lowest) points [score])
-                high-scores)))))
+    (flatten (vals
+      (reduce
+        (fn [high-scores
+             {points :points
+              taken  :taken
+              :as score :or {points 0 taken 0}}]
+          (let [delta (+ points taken)]
+            (if-let [s (high-scores delta)]
+              (assoc high-scores delta (conj s score))
+              (if (< (count high-scores) n)
+                (assoc high-scores delta [score])
+                (let [lowest (key (first high-scores))]
+                  (if (> delta lowest)
+                    (assoc (dissoc high-scores lowest) delta [score])
+                    high-scores))))))
       (sorted-map)
       scores))))
 
