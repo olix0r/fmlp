@@ -1,4 +1,4 @@
-# letterdepress
+# fmlp
 
 A clojure app made to crack letterpress.  Because I'm terrible at life ;( 
 
@@ -8,31 +8,32 @@ A clojure app made to crack letterpress.  Because I'm terrible at life ;(
 
 ## Usage
 
-	:; lein run <in-play> <unplayed> <reserved>
+	:; lein run free-letters [opponents [claimed]]
 
 ## Examples
 
-     :; lein run "gdmkuerp" "xwuxvz" "nnbirvcbdmk" |sort -rn | head -n 20
-     +7 -6 unumpired
-     +7 -6 unpurged
-     +7 -6 unimpugned
-     +7 -6 underdrumming
-     +7 -6 undemurring
-     +6 -6 upridge
-     +6 -6 unprimmed
-     +6 -6 unprimed
-     +6 -6 unpricked
-     +6 -6 ungrimed
-     +6 -6 underpick
-     +6 -6 underking
-     +6 -6 perduring
-     +6 -6 murdering
-     +6 -6 impugner
-     +6 -6 dumper
-     +6 -6 demurring
-     +6 -5 unurged
-     +6 -5 unpucker
-     +6 -5 unpruned
+    :; lein run "xwuxvz" "gdmkuerp" "nnbirvcbdmk" -HHH
+      +09 -04 bemudding
+      +09 -04 bumpering
+      +09 -04 deburring
+      +09 -04 demurring
+      +08 -05 grumpier
+      +09 -04 murdering
+      +09 -04 puckering
+      +09 -04 recurving
+      +08 -05 repuring
+      +09 -04 rubbering
+      +09 -04 unbedding
+      +09 -04 unbridged
+      +09 -04 unrecuring
+      +08 -05 upgirded
+      +09 -05 perduring
+      +09 -05 precuring
+      +09 -05 puddening
+      +09 -05 puddering
+      +09 -05 undergird
+      +10 -04 unpuckering
+      +10 -05 bemurmuring
 
 ## License
 
