@@ -172,7 +172,7 @@
       (cond
         do-help?
           (println help-msg)
-        (= board-sz 0)
+        (= letter-count 0)
           (.println *err* help-msg)
         :else
           (with-open [dict (reader (resource "words"))]
